@@ -1,5 +1,44 @@
 # Pizza42 Backend — Implementation Plan
 
+## Progress (resume here in a new session)
+
+Implementation started. **Done:**
+- `pyproject.toml`, `.env.example`, `.gitignore`, `README.md`
+- `app/config.py` — env loading (Auth0 domain/audience/scope, issuer/JWKS derived, port, db path)
+- `app/db.py` — SQLite schema (menu/orders/order_items), idempotent menu seed, helpers:
+  `get_db`, `close_db`, `init_db`, `get_menu_row`, `insert_order`, `fetch_orders_for_user`
+
+**Not yet done (pick up in this order):**
+1. `app/auth.py` — `flask-jwt-extended` JWTManager, `decode_key_callback` using
+   `jwt.PyJWKClient(AUTH0_JWKS_URL)` resolved by `kid`; config `JWT_ALGORITHM=RS256`,
+   `JWT_DECODE_ALGORITHMS=["RS256"]`, `JWT_AUDIENCE`, `JWT_ISSUER`. A
+   `@require_scope` decorator checking `get_jwt()["scope"]` for `AUTH0_SCOPE` (403 if missing).
+2. `app/routes/menu.py` — blueprint with `GET /api/menu` (public), returns
+   `[{id,name,description,price}, …]` from the `menu` table.
+3. `app/routes/orders.py` — blueprint with:
+   - `POST /api/orders` (`@jwt_required` + `@require_scope`): validate item ids against
+     `menu` (400 if unknown), **server-authoritative total** from menu prices (snapshot
+     price/name into `order_items`), generate `id = "ORD-" + uuid4().hex[:8]`,
+     `date = datetime.now(timezone.utc).isoformat()`, `user_id = get_jwt()["sub"]`,
+     return the order in the mock shape (`{id,date,items,total,status,address}`).
+     Ignore client-sent `total`.
+   - `GET /api/orders` (`@jwt_required` + `@require_scope`): returns
+     `{"orders": [...]}` via `fetch_orders_for_user`, newest first.
+4. `app/__init__.py` — `create_app()` factory: load `Config`, init `JWTManager`, register
+   `close_db` teardown, call `init_db()` on app first use, register both blueprints.
+   Register blueprints with `url_prefix="/api"`.
+5. `app/__main__.py` — `from . import create_app; app = create_app(); app.run(port=Config.PORT, debug=True)`
+6. `tests/test_menu.py` + `tests/test_orders.py` — pytest. Monkeypatch JWT decode to inject
+   a synthetic `sub` (avoid real Auth0 keys offline). Cover: menu returns 3 pizzas no token;
+   401 without token; 403 valid-but-no-scope; unknown item id → 400; POST recomputes total;
+   GET returns only caller's orders. Use a temp db per test (e.g. `:memory:` or tmp file).
+7. `uv sync` then `uv run pytest` — verify all pass.
+
+**Status code conventions:** missing/invalid token → 401; valid token missing scope → 403;
+unknown item id or empty items → 400.
+
+---
+
 Build a simple Flask backend in `../backend` that lets authenticated users POST a pizza
 order and GET their current orders. Auth via Auth0 OAuth2 access tokens (RS256/JWKS).
 Menu/inventory is served by the API from a SQLite `menu` table. Run with `uv` (no manual
