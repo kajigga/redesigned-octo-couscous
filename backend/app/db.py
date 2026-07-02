@@ -10,6 +10,18 @@ from .models import MenuItem, Order, OrderItem
 logger = logging.getLogger(__name__)
 
 
+def with_db_session(func):
+    """Decorator that ensures proper session management with rollback on error."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except SQLAlchemyError:
+            db.session.rollback()
+            raise
+    return wrapper
+
+
 def with_db_retry(max_retries=3, base_delay=1):
     """Decorator that retries database operations on transient connection errors."""
     def decorator(func):
@@ -134,3 +146,25 @@ def fetch_orders_for_user(user_id):
         )
     logger.info(f"Fetched {len(result)} orders for user {user_id}")
     return result
+
+
+@with_db_session
+@with_db_retry(max_retries=3, base_delay=1)
+def resolve_order_items(order_items):
+    """Resolve item IDs against the menu, returning validated items with prices."""
+    resolved = []
+    for item in order_items:
+        item_id = item.get("id")
+        quantity = item.get("quantity", 1)
+        menu_item = db.session.get(MenuItem, item_id)
+        if not menu_item:
+            return {"error": f"unknown item id: {item_id}"}, 400
+        resolved.append(
+            {
+                "id": item_id,
+                "name": menu_item.name,
+                "quantity": quantity,
+                "price": menu_item.price,
+            }
+        )
+    return resolved

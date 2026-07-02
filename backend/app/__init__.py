@@ -39,4 +39,11 @@ def create_app(test_config=None):
     app.register_blueprint(public_bp, url_prefix="/", name='default')
     app.register_blueprint(orders_bp, url_prefix="/api")
 
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        """Ensure database sessions are cleaned up after each request."""
+        if exception:
+            _db.session.rollback()
+        _db.session.remove()
+
     return app

@@ -146,3 +146,90 @@ def test_get_orders_shape(client, monkeypatch):
     assert got["status"] == "received"
     assert got["items"] == order["items"]
     assert got["address"] == order["address"]
+
+
+def test_get_orders_after_failed_post(client, monkeypatch):
+    """GET /api/orders works after a failed POST that triggers a validation error."""
+    _mock_auth(monkeypatch)
+
+    # First, create a valid order
+    resp = client.post(
+        "/api/orders",
+        json={
+            "items": [{"id": "pepperoni", "quantity": 1}],
+            "address": {"name": "Test", "street": "1", "city": "C", "zip": "Z"},
+        },
+    )
+    assert resp.status_code == 201
+
+    # Now try to create an order with an unknown item (this should fail)
+    resp = client.post(
+        "/api/orders",
+        json={
+            "items": [{"id": "nonexistent", "quantity": 1}],
+            "address": {"name": "Test", "street": "1", "city": "C", "zip": "Z"},
+        },
+    )
+    assert resp.status_code == 400
+
+    # The critical test: GET /api/orders should still work after the failed POST
+    # This verifies that the session was properly rolled back
+    resp = client.get("/api/orders")
+    assert resp.status_code == 200
+    data = resp.get_json()
+    assert len(data["orders"]) == 1
+    assert data["orders"][0]["address"]["name"] == "Test"
+
+
+def test_with_db_session_rolls_back_on_error(app, monkeypatch):
+    """with_db_session decorator rolls back session on SQLAlchemyError."""
+    from app.db import with_db_session
+    from app.extensions import db
+    from app.models import Order
+    from sqlalchemy.exc import SQLAlchemyError
+
+    with app.app_context():
+        # Create a function that will fail with a SQLAlchemyError
+        @with_db_session
+        def failing_operation():
+            """Add an order but raise an error before commit."""
+            order = Order(
+                id="TEST-001",
+                user_id="test-user",
+                date="2026-01-01T00:00:00",
+                total=10.0,
+                address_name="Test",
+                street="1",
+                city="C",
+                zip="Z",
+            )
+            db.session.add(order)
+            # Simulate an error that would leave session in invalid state
+            raise SQLAlchemyError("Simulated error")
+
+        # The function should raise the error
+        with pytest.raises(SQLAlchemyError, match="Simulated error"):
+            failing_operation()
+
+        # Session should be rolled back, so the order shouldn't exist
+        order = Order.query.get("TEST-001")
+        assert order is None
+
+        # Subsequent operations should work (no PendingRollbackError)
+        order2 = Order(
+            id="TEST-002",
+            user_id="test-user",
+            date="2026-01-01T00:00:00",
+            total=20.0,
+            address_name="Test2",
+            street="2",
+            city="C",
+            zip="Z",
+        )
+        db.session.add(order2)
+        db.session.commit()
+
+        # Verify the second order was saved
+        saved_order = Order.query.get("TEST-002")
+        assert saved_order is not None
+        assert saved_order.total == 20.0

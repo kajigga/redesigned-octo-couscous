@@ -8,31 +8,11 @@ from flask_jwt_extended import get_jwt
 from ..extensions import db
 from ..auth import is_authenticated
 from ..models import MenuItem
-from ..db import insert_order, fetch_orders_for_user
+from ..db import insert_order, fetch_orders_for_user, resolve_order_items
 from ..auth0_mgmt import add_order_to_app_metadata
 from ..config import Config
 
 orders_bp = Blueprint("orders", __name__)
-
-
-def resolved_order_items(order_items):
-    """Resolve item IDs against the menu, returning validated items with prices."""
-    resolved = []
-    for item in order_items:
-        item_id = item.get("id")
-        quantity = item.get("quantity", 1)
-        menu_item = db.session.get(MenuItem, item_id)
-        if not menu_item:
-            return {"error": f"unknown item id: {item_id}"}, 400
-        resolved.append(
-            {
-                "id": item_id,
-                "name": menu_item.name,
-                "quantity": quantity,
-                "price": menu_item.price,
-            }
-        )
-    return resolved
 
 @orders_bp.route("/orders", methods=["POST", "OPTIONS"])
 @cross_origin()
@@ -47,7 +27,7 @@ def create_order():
     if not items or not isinstance(items, list):
         return {"error": "items must be a non-empty array"}, 400
 
-    resolved = resolved_order_items(items)
+    resolved = resolve_order_items(items)
     if isinstance(resolved, tuple):
         return resolved
 
