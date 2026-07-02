@@ -405,7 +405,7 @@ wheels = [
 
 [[package]]
 name = "pizza42-backend"
-version = "0.1.11"
+version = "0.1.12"
 source = { editable = "." }
 dependencies = [
     { name = "cryptography" },
