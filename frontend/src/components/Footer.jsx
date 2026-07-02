@@ -5,10 +5,12 @@ export default function Footer() {
   return (
     <footer className="bg-dark text-white py-3 mt-auto">
       <Container className="d-flex align-items-center justify-content-between">
-        <img src="/images/logo_simplified.png" alt="Pizza42" height="20" />
+		  <span className='small'>
+			<img src="/images/logo_simplified.png" alt="Pizza42" height="20" /> Pizza42
+		  </span>
 
         <span className="small">
-          Copyright {new Date().getFullYear()} | Bongawonga | {version && <>v{version} &middot; </>}
+          Copyright {new Date().getFullYear()} &middot; Bongawonga &middot; {version && <>v{version} </>}
         </span>
       </Container>
     </footer>
