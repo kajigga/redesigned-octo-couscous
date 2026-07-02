@@ -29,6 +29,7 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Prettier**: 2-space, no tabs. No format script — `npx prettier -w .`
 - **Node**: `^20.19.0 \|\| >=22.12.0` (`.npmrc engine-strict=true`)
 - **Backend build**: uses `uv_build`
+- **Add backend deps**: always use `uv add <pkg>` — never edit `pyproject.toml` manually
 - **`quickstart/`**: Auth0 data, not app source
 
 ## Before done
