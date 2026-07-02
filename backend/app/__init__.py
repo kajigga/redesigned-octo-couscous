@@ -17,12 +17,6 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
-    db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
-    if db_uri.startswith("mysql"):
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "connect_args": {"ssl": {"check_hostname": False}}
-        }
-
     app.config["JWT_ALGORITHM"] = "RS256"
     app.config["JWT_DECODE_ALGORITHMS"] = ["RS256"]
     app.config["JWT_AUDIENCE"] = Config.AUTH0_AUDIENCE
