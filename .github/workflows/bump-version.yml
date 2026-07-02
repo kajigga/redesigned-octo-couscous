@@ -57,15 +57,19 @@ jobs:
           fi
 
       - name: Bump backend version
+        id: bump-backend
         run: |
           cd backend
           uv version --bump ${{ steps.bump-type.outputs.type }} --no-sync
+          echo "version=$(uv version --short)" >> $GITHUB_OUTPUT
           echo "Backend bumped to $(uv version --short)"
 
       - name: Bump frontend version
+        id: bump-frontend
         run: |
           cd frontend
           npm version ${{ steps.bump-type.outputs.type }} --no-git-tag-version
+          echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
           echo "Frontend bumped to $(node -p "require('./package.json').version")"
 
       - name: Commit and push
@@ -75,3 +79,10 @@ jobs:
           git add backend/pyproject.toml frontend/package.json
           git commit -m "chore: bump versions [${{ steps.bump-type.outputs.type }}]"
           git push
+
+      - name: Create tags for major/minor releases
+        if: steps.bump-type.outputs.type == 'major' || steps.bump-type.outputs.type == 'minor'
+        run: |
+          git tag backend-v${{ steps.bump-backend.outputs.version }}
+          git tag frontend-v${{ steps.bump-frontend.outputs.version }}
+          git push --tags
