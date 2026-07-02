@@ -3,6 +3,7 @@ from functools import wraps
 
 
 def cache(ttl_seconds):
+    """Simple in-memory cache decorator with a TTL."""
     def decorator(fn):
         cached = None
         cached_at = 0.0

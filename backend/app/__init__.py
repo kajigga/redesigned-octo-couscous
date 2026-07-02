@@ -1,3 +1,4 @@
+import logging
 from flask import Flask
 
 from .config import Config
@@ -7,6 +8,12 @@ from .db import init_db
 from .auth import jwt_manager
 from .routes.public_endpoints import public_bp
 from .routes.orders import orders_bp
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def create_app(test_config=None):

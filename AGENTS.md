@@ -33,6 +33,10 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Semantic versioning**: Frontend and backend have independent semver versions. Backend: `uv version --bump <part>` (or `make bump-backend PART=<part>`). Frontend: `npm version <part> --no-git-tag-version` (or `make bump-frontend PART=<part>`).
 - **`quickstart/`**: Auth0 data, not app source
 
+## Code Style
+
+- **Python docstrings**: All Python functions must have brief docstrings describing what they do
+
 ## Repo Hygiene
 
 - **Don't commit plans, handoff docs, or scratch markdown** unless explicitly told to do so

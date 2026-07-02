@@ -12,6 +12,7 @@ _mgmt_token_expires = 0.0
 
 
 def _get_mgmt_token():
+    """Get or refresh the Auth0 Management API token."""
     global _mgmt_token, _mgmt_token_expires
 
     now = time.time()
@@ -47,6 +48,7 @@ def _get_mgmt_token():
 
 
 def add_order_to_app_metadata(user_id, order_data):
+    """Append an order to the user's Auth0 app_metadata."""
     token = _get_mgmt_token()
     domain = current_app.config.get("AUTH0_DOMAIN", "bongawonga.us.auth0.com")
     base = f"https://{domain}/api/v2/users/{urllib.parse.quote(user_id, safe='')}"

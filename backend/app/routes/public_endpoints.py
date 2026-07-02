@@ -1,10 +1,11 @@
 import os
 from importlib.metadata import version as get_pkg_version
 
-from flask import Blueprint, make_response
+from flask import Blueprint, jsonify, make_response
 from flask_cors import cross_origin
 
 from ..cache import cache
+from ..extensions import db
 from ..models import MenuItem
 
 public_bp = Blueprint("public", __name__)
@@ -14,6 +15,7 @@ public_bp = Blueprint("public", __name__)
 @cross_origin()
 @cache(ttl_seconds=300)
 def get_menu():
+    """Return all menu items."""
     items = MenuItem.query.all()
     return [
         {
@@ -30,6 +32,7 @@ def get_menu():
 @public_bp.route("/version")
 @cross_origin()
 def get_version():
+    """Return the app version and git SHA."""
     try:
         semver = get_pkg_version("pizza42-backend")
     except Exception:
@@ -44,4 +47,16 @@ def get_version():
 @public_bp.route("/")
 @cross_origin()
 def api_home():
+    """Serve the API root, returning version info."""
     return get_version()
+
+
+@public_bp.route("/health")
+@cross_origin()
+def health_check():
+    """Check database connectivity and return health status."""
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        return jsonify({'status': 'healthy', 'database': 'connected'})
+    except Exception as e:
+        return jsonify({'status': 'unhealthy', 'database': 'disconnected', 'error': str(e)}), 503

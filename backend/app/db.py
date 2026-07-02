@@ -1,5 +1,41 @@
+import logging
+import time
+from functools import wraps
+
+from sqlalchemy.exc import OperationalError, SQLAlchemyError
+
 from .extensions import db
 from .models import MenuItem, Order, OrderItem
+
+logger = logging.getLogger(__name__)
+
+
+def with_db_retry(max_retries=3, base_delay=1):
+    """Decorator that retries database operations on transient connection errors."""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except OperationalError as e:
+                    if attempt < max_retries:
+                        delay = base_delay * (2 ** attempt)
+                        logger.warning(
+                            f"Database operation failed (attempt {attempt + 1}/{max_retries + 1}): "
+                            f"{str(e)}. Retrying in {delay}s..."
+                        )
+                        time.sleep(delay)
+                        continue
+                    logger.error(
+                        f"Database operation failed after {max_retries + 1} attempts: {str(e)}"
+                    )
+                    raise
+                except SQLAlchemyError as e:
+                    logger.error(f"Database error: {str(e)}")
+                    raise
+        return wrapper
+    return decorator
 
 MENU_SEED = [
     {
@@ -34,8 +70,10 @@ def init_db():
     db.session.commit()
 
 
+@with_db_retry(max_retries=3, base_delay=1)
 def insert_order(order_id, user_id, date, total, address, items):
     """Persist a new order with its items to the database."""
+    logger.info(f"Inserting order {order_id} for user {user_id}")
     order = Order(
         id=order_id,
         user_id=user_id,
@@ -57,10 +95,13 @@ def insert_order(order_id, user_id, date, total, address, items):
         )
     db.session.add(order)
     db.session.commit()
+    logger.info(f"Order {order_id} inserted successfully")
 
 
+@with_db_retry(max_retries=3, base_delay=1)
 def fetch_orders_for_user(user_id):
     """Return all orders for a given user, most recent first."""
+    logger.info(f"Fetching orders for user {user_id}")
     orders = (
         Order.query.filter_by(user_id=user_id)
         .order_by(Order.date.desc())
@@ -91,4 +132,5 @@ def fetch_orders_for_user(user_id):
                 },
             }
         )
+    logger.info(f"Fetched {len(result)} orders for user {user_id}")
     return result
