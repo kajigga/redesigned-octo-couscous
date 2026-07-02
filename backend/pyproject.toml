@@ -1,6 +1,6 @@
 [project]
 name = "pizza42-backend"
-version = "0.1.4"
+version = "0.1.5"
 description = "Pizza42 orders + menu API (Auth0 RS256, SQLite)"
 requires-python = ">=3.11"
 dependencies = [
