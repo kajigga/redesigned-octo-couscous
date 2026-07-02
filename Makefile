@@ -40,8 +40,7 @@ deploy-frontend-image:
 	ssh $(ARM_HOST) "cd /root && docker compose build pizza42-frontend && docker compose up -d pizza42-frontend"
 
 run-frontend:
-	cd frontend
-	npm run dev
+	cd frontend; npm run dev
 
 run-backend:
 	cd backend; uv run python -m app

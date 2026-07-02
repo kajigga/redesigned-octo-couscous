@@ -19,7 +19,7 @@ export default function Layout({ children }) {
         <Container>
           <LinkContainer to="/">
             <Navbar.Brand>
-              <img src="/images/pizza42_logo.png" alt="Pizza42" height="32" />
+              <img src="/images/logo_simplified.png" alt="Pizza42" height="32" />
             </Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls="main-nav" />

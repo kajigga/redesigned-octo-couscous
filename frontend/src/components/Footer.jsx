@@ -5,7 +5,8 @@ export default function Footer() {
   return (
     <footer className="bg-dark text-white py-3 mt-auto">
       <Container className="d-flex align-items-center justify-content-between">
-        <img src="/images/pizza42_logo.png" alt="Pizza42" height="20" />
+        <img src="/images/logo_simplified.png" alt="Pizza42" height="20" />
+
         <span className="small">
           Copyright {new Date().getFullYear()} | Bongawonga | {sha && <>{sha} &middot; </>}
         </span>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { jwtDecode } from "jwt-decode";
-import { Alert, Card, Spinner } from "react-bootstrap";
+import { Alert, Button, Card, Spinner } from "react-bootstrap";
 import OrderCard from "../components/OrderCard";
 import VerifiedBadge from "../components/VerifiedBadge";
 import { getOrders } from "../api/orders";
@@ -17,6 +17,8 @@ function decodeJwtPayload(token) {
 export default function Profile() {
   const { user, getAccessTokenSilently } = useAuth0();
   const [tokens, setTokens] = useState(null);
+  const [showAccessToken, setShowAccessToken] = useState(false);
+  const [showIdToken, setShowIdToken] = useState(false);
   const [orders, setOrders] = useState(null);
   const [ordersError, setOrdersError] = useState(null);
 
@@ -84,12 +86,23 @@ export default function Profile() {
       {tokens?.access_token && (
         <Card className="mb-3">
           <Card.Body>
-            <Card.Title>Access Token</Card.Title>
+            <div className="d-flex justify-content-between align-items-center">
+              <Card.Title className="mb-0">Access Token</Card.Title>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowAccessToken((v) => !v)}
+              >
+                {showAccessToken ? "Hide" : "Show"}
+              </Button>
+            </div>
             <pre
-              className="bg-light p-3 rounded mb-0"
+              className="bg-light p-3 rounded mb-0 mt-3"
               style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
             >
-              <code>{tokens.access_token}</code>
+              <code>
+                {showAccessToken ? tokens.access_token : "••••••••"}
+              </code>
             </pre>
             <Card.Title className="mt-3">Decoded Payload</Card.Title>
             <pre
@@ -107,12 +120,23 @@ export default function Profile() {
       {tokens?.id_token && (
         <Card className="mb-3">
           <Card.Body>
-            <Card.Title>ID Token</Card.Title>
+            <div className="d-flex justify-content-between align-items-center">
+              <Card.Title className="mb-0">ID Token</Card.Title>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => setShowIdToken((v) => !v)}
+              >
+                {showIdToken ? "Hide" : "Show"}
+              </Button>
+            </div>
             <pre
-              className="bg-light p-3 rounded mb-0"
+              className="bg-light p-3 rounded mb-0 mt-3"
               style={{ whiteSpace: "pre-wrap", wordBreak: "break-all" }}
             >
-              <code>{tokens.id_token}</code>
+              <code>
+                {showIdToken ? tokens.id_token : "••••••••"}
+              </code>
             </pre>
             <Card.Title className="mt-3">Decoded Payload</Card.Title>
             <pre
