@@ -35,6 +35,7 @@ def create_app(test_config=None):
         init_db()
 
     app.register_blueprint(public_bp, url_prefix="/api")
+    app.register_blueprint(public_bp, url_prefix="/", name='default')
     app.register_blueprint(orders_bp, url_prefix="/api")
 
     return app

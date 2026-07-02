@@ -40,3 +40,8 @@ def get_version():
     })
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     return response
+
+@public_bp.route("/")
+@cross_origin()
+def api_home():
+    return get_version()
