@@ -1,4 +1,5 @@
 import os
+from importlib.metadata import version as get_pkg_version
 
 from flask import Blueprint
 from flask_cors import cross_origin
@@ -29,4 +30,11 @@ def get_menu():
 @public_bp.route("/version")
 @cross_origin()
 def get_version():
-    return {"version": os.environ.get("GIT_SHA") or os.environ.get("RENDER_GIT_COMMIT", "unknown")}
+    try:
+        semver = get_pkg_version("pizza42-backend")
+    except Exception:
+        semver = "unknown"
+    return {
+        "version": semver,
+        "gitSha": os.environ.get("GIT_SHA") or os.environ.get("RENDER_GIT_COMMIT", "unknown"),
+    }
