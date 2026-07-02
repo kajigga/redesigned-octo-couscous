@@ -1,5 +1,5 @@
 # Pizza42
-![pic alt](https://pizza42.bongawonga.com/images/pizza42_logo.png "opt title")
+![pic alt](frontend/public/images/pizza42_logo.png "opt title")
 A sample online pizza ordering application with two apps in one repo:
 
 - **`frontend/`** — React + Vite SPA (Auth0 login, cart, checkout, profile)
