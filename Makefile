@@ -16,6 +16,10 @@ RSYNC_OPTS = -avz --delete \
 
 .PHONY: deploy deploy-backend deploy-frontend build-frontend
 
+setup-frontend:
+	cd frontend ; \
+	npm install 
+
 build-frontend:
 	cd frontend && npm ci && \
 	  VITE_API_BASE_URL=https://orders.pizza42.bongawonga.com \
