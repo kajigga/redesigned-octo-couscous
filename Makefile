@@ -14,7 +14,7 @@ RSYNC_OPTS = -avz --delete \
 	--exclude 'orders.db' \
 	--exclude 'instance'
 
-.PHONY: deploy deploy-backend deploy-frontend build-frontend
+.PHONY: deploy deploy-backend deploy-frontend build-frontend bump-backend bump-frontend
 
 setup-frontend:
 	cd frontend ; \
@@ -50,3 +50,9 @@ run-backend:
 	cd backend; uv run python -m app
 
 deploy: deploy-backend deploy-frontend
+
+bump-backend:
+	@cd backend && uv version --bump $${PART:-patch} --no-sync
+
+bump-frontend:
+	@cd frontend && npm version $${PART:-patch} --no-git-tag-version

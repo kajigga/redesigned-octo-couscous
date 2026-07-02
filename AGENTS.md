@@ -30,6 +30,7 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Node**: `^20.19.0 \|\| >=22.12.0` (`.npmrc engine-strict=true`)
 - **Backend build**: uses `uv_build`
 - **Add backend deps**: always use `uv add <pkg>` — never edit `pyproject.toml` manually
+- **Semantic versioning**: Frontend and backend have independent semver versions. Backend: `uv version --bump <part>` (or `make bump-backend PART=<part>`). Frontend: `npm version <part> --no-git-tag-version` (or `make bump-frontend PART=<part>`).
 - **`quickstart/`**: Auth0 data, not app source
 
 ## Before done

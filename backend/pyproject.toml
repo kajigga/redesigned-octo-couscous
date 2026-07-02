@@ -12,7 +12,7 @@ dependencies = [
   "python-dotenv>=1.0",
   "cryptography>=49.0.0",
   "gunicorn>=23.0",
-  "psycopg2-binary>=2.9.12",
+  "pymysql>=1.2.0",
 ]
 
 [project.optional-dependencies]
