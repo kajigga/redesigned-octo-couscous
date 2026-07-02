@@ -8,3 +8,7 @@ export async function placeOrder(orderData, token) {
   });
   return result;
 }
+
+export async function getOrders(token) {
+  return apiClient("/api/orders", { token });
+}

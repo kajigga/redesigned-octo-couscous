@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { jwtDecode } from "jwt-decode";
-import { Alert, Card } from "react-bootstrap";
+import { Alert, Card, Spinner } from "react-bootstrap";
 import OrderCard from "../components/OrderCard";
 import VerifiedBadge from "../components/VerifiedBadge";
-import mockOrders from "../mocks/orders";
+import { getOrders } from "../api/orders";
 
 function decodeJwtPayload(token) {
   try {
@@ -17,10 +17,8 @@ function decodeJwtPayload(token) {
 export default function Profile() {
   const { user, getAccessTokenSilently } = useAuth0();
   const [tokens, setTokens] = useState(null);
-
-  const orders = user?.["pizza42/orders"] || mockOrders;
-
-  console.log('user', user);
+  const [orders, setOrders] = useState(null);
+  const [ordersError, setOrdersError] = useState(null);
 
   useEffect(() => {
     const fetchTokens = async () => {
@@ -32,6 +30,24 @@ export default function Profile() {
       }
     };
     fetchTokens();
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          },
+        });
+        const data = await getOrders(token);
+        setOrders(data.orders);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+        setOrdersError(err.message);
+      }
+    };
+    fetchOrders();
   }, [getAccessTokenSilently]);
 
   return (
@@ -53,7 +69,13 @@ export default function Profile() {
         </Card.Body>
       </Card>
 
-      {orders.length === 0 ? (
+      {orders === null ? (
+        <div className="text-center py-4">
+          <Spinner animation="border" />
+        </div>
+      ) : ordersError ? (
+        <Alert variant="danger">Failed to load orders: {ordersError}</Alert>
+      ) : orders.length === 0 ? (
         <Alert variant="info">You haven't placed any orders yet.</Alert>
       ) : (
         orders.map((order) => <OrderCard key={order.id} order={order} />)

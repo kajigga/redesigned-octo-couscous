@@ -1,4 +1,4 @@
-const BASE_URL = "https://orders.bongawonga.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://orders.bongawonga.com";
 
 export async function apiClient(endpoint, { method = "GET", body, token } = {}) {
   const headers = { "Content-Type": "application/json" };

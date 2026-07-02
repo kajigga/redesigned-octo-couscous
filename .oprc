@@ -1,0 +1,3 @@
+export NAMECOM_USERNAME=$(op read 'op://Private/Name.com/username')
+export NAMECOM_TOKEN=$(op read 'op://Private/Name.com/api_token')
+export NAMECOM_USER=$NAMECOM_USERNAME

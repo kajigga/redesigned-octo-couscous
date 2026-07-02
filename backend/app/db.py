@@ -1,126 +1,93 @@
-import sqlite3
+from .extensions import db
+from .models import MenuItem, Order, OrderItem
 
-from flask import current_app, g
-
-# Seed data mirrors frontend/src/data/menu.js — keep in sync.
 MENU_SEED = [
-    ("pepperoni", "Pepperoni", "Classic pepperoni with mozzarella cheese", 12.99),
-    ("sausage", "Sausage", "Italian sausage with mozzarella cheese", 13.99),
-    ("hawaiian", "Hawaiian", "Ham and pineapple with mozzarella cheese", 11.99),
+    {
+        "id": "pepperoni",
+        "name": "Pepperoni",
+        "description": "Classic pepperoni with mozzarella cheese",
+        "price": 12.99,
+        "image_url": "https://thumbs.dreamstime.com/b/whole-pepperoni-pizza-1356269.jpg",
+    },
+    {
+        "id": "sausage",
+        "name": "Sausage",
+        "description": "Italian sausage with mozzarella cheese",
+        "price": 13.99,
+        "image_url": "https://joyfoodsunshine.com/wp-content/uploads/2023/09/sausage-pizza-recipe-17.jpg",
+    },
+    {
+        "id": "hawaiian",
+        "name": "Hawaiian",
+        "description": "Ham and pineapple with mozzarella cheese",
+        "price": 11.99,
+        "image_url": "https://i0.wp.com/dishcrawl.com/wp-content/uploads/2021/08/hawaiian-pizza-recipe.jpg?fit=600%2C600&ssl=1",
+    },
 ]
-
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS menu (
-  id          TEXT PRIMARY KEY,
-  name        TEXT NOT NULL,
-  description TEXT,
-  price       REAL NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS orders (
-  id           TEXT PRIMARY KEY,
-  user_id      TEXT NOT NULL,
-  date         TEXT NOT NULL,
-  total        REAL NOT NULL,
-  status       TEXT NOT NULL DEFAULT 'received',
-  address_name TEXT,
-  street       TEXT,
-  city         TEXT,
-  zip          TEXT
-);
-
-CREATE TABLE IF NOT EXISTS order_items (
-  order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-  item_id  TEXT NOT NULL REFERENCES menu(id),
-  name     TEXT NOT NULL,
-  quantity INTEGER NOT NULL,
-  price    REAL NOT NULL,
-  PRIMARY KEY (order_id, item_id)
-);
-
-CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
-"""
-
-
-def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(current_app.config["DATABASE"])
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
-    return g.db
-
-
-def close_db(_exc=None):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
 
 
 def init_db():
-    db = get_db()
-    db.executescript(_SCHEMA)
-    db.executemany(
-        "INSERT INTO menu (id, name, description, price) VALUES (?, ?, ?, ?) "
-        "ON CONFLICT(id) DO UPDATE SET name=excluded.name, "
-        "description=excluded.description, price=excluded.price",
-        MENU_SEED,
+    """Create all tables and seed the menu."""
+    db.create_all()
+    for data in MENU_SEED:
+        db.session.merge(MenuItem(**data))
+    db.session.commit()
+
+
+def insert_order(order_id, user_id, date, total, address, items):
+    """Persist a new order with its items to the database."""
+    order = Order(
+        id=order_id,
+        user_id=user_id,
+        date=date,
+        total=total,
+        address_name=address.get("name"),
+        street=address.get("street"),
+        city=address.get("city"),
+        zip=address.get("zip"),
     )
-    db.commit()
+    for item in items:
+        order.items.append(
+            OrderItem(
+                item_id=item["id"],
+                name=item["name"],
+                quantity=item["quantity"],
+                price=item["price"],
+            )
+        )
+    db.session.add(order)
+    db.session.commit()
 
 
-def get_menu_row(db, item_id):
-    return db.execute("SELECT * FROM menu WHERE id = ?", (item_id,)).fetchone()
-
-
-def insert_order(db, order_id, user_id, date, total, address, items):
-    db.execute(
-        "INSERT INTO orders (id, user_id, date, total, status, "
-        "address_name, street, city, zip) VALUES (?, ?, ?, ?, 'received', ?, ?, ?, ?)",
-        (
-            order_id,
-            user_id,
-            date,
-            total,
-            address.get("name"),
-            address.get("street"),
-            address.get("city"),
-            address.get("zip"),
-        ),
+def fetch_orders_for_user(user_id):
+    """Return all orders for a given user, most recent first."""
+    orders = (
+        Order.query.filter_by(user_id=user_id)
+        .order_by(Order.date.desc())
+        .all()
     )
-    db.executemany(
-        "INSERT INTO order_items (order_id, item_id, name, quantity, price) "
-        "VALUES (?, ?, ?, ?, ?)",
-        [
-            (order_id, item["id"], item["name"], item["quantity"], item["price"])
-            for item in items
-        ],
-    )
-    db.commit()
-
-
-def fetch_orders_for_user(db, user_id):
-    rows = db.execute(
-        "SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC", (user_id,)
-    ).fetchall()
     result = []
-    for row in rows:
-        item_rows = db.execute(
-            "SELECT item_id AS id, name, quantity, price FROM order_items "
-            "WHERE order_id = ?",
-            (row["id"],),
-        ).fetchall()
+    for order in orders:
         result.append(
             {
-                "id": row["id"],
-                "date": row["date"],
-                "items": [dict(ir) for ir in item_rows],
-                "total": row["total"],
-                "status": row["status"],
+                "id": order.id,
+                "date": order.date,
+                "items": [
+                    {
+                        "id": oi.item_id,
+                        "name": oi.name,
+                        "quantity": oi.quantity,
+                        "price": oi.price,
+                    }
+                    for oi in order.items
+                ],
+                "total": order.total,
+                "status": order.status,
                 "address": {
-                    "name": row["address_name"],
-                    "street": row["street"],
-                    "city": row["city"],
-                    "zip": row["zip"],
+                    "name": order.address_name,
+                    "street": order.street,
+                    "city": order.city,
+                    "zip": order.zip,
                 },
             }
         )

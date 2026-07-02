@@ -12,17 +12,17 @@ Implementation started. **Done:**
 1. `app/auth.py` — `flask-jwt-extended` JWTManager, `decode_key_callback` using
    `jwt.PyJWKClient(AUTH0_JWKS_URL)` resolved by `kid`; config `JWT_ALGORITHM=RS256`,
    `JWT_DECODE_ALGORITHMS=["RS256"]`, `JWT_AUDIENCE`, `JWT_ISSUER`. A
-   `@require_scope` decorator checking `get_jwt()["scope"]` for `AUTH0_SCOPE` (403 if missing).
+   `@is_authenticated` decorator checking `get_jwt()["scope"]` for `AUTH0_SCOPE` (403 if missing).
 2. `app/routes/menu.py` — blueprint with `GET /api/menu` (public), returns
    `[{id,name,description,price}, …]` from the `menu` table.
 3. `app/routes/orders.py` — blueprint with:
-   - `POST /api/orders` (`@jwt_required` + `@require_scope`): validate item ids against
+   - `POST /api/orders` (`@jwt_required` + `@is_authenticated`): validate item ids against
      `menu` (400 if unknown), **server-authoritative total** from menu prices (snapshot
      price/name into `order_items`), generate `id = "ORD-" + uuid4().hex[:8]`,
      `date = datetime.now(timezone.utc).isoformat()`, `user_id = get_jwt()["sub"]`,
      return the order in the mock shape (`{id,date,items,total,status,address}`).
      Ignore client-sent `total`.
-   - `GET /api/orders` (`@jwt_required` + `@require_scope`): returns
+   - `GET /api/orders` (`@jwt_required` + `@is_authenticated`): returns
      `{"orders": [...]}` via `fetch_orders_for_user`, newest first.
 4. `app/__init__.py` — `create_app()` factory: load `Config`, init `JWTManager`, register
    `close_db` teardown, call `init_db()` on app first use, register both blueprints.
@@ -65,7 +65,7 @@ backend/
     __init__.py           # create_app() factory
     __main__.py           # python -m app entry -> app.run()
     config.py             # env via python-dotenv
-    auth.py               # JWKS decode_key_callback + @require_scope
+    auth.py               # JWKS decode_key_callback + @is_authenticated
     db.py                 # sqlite connection + schema bootstrap + menu seed
     routes/
       menu.py             # GET /api/menu (public)
@@ -133,7 +133,7 @@ On startup, seed `menu` idempotently (upsert) with the 3 pizzas mirroring
 Returns `[{id, name, description, price}, …]`. Becomes the canonical inventory source the
 frontend can fetch later (follow-up to wire it into `src/data/menu.js`).
 
-### POST /api/orders — `@jwt_required` + `@require_scope("pizza42-order")`
+### POST /api/orders — `@jwt_required` + `@is_authenticated("pizza42-order")`
 
 Accepts the frontend payload (matches `frontend/src/api/orders.js` +
 `frontend/src/routes/Checkout.jsx:74`):
@@ -165,7 +165,7 @@ Accepts the frontend payload (matches `frontend/src/api/orders.js` +
 }
 ```
 
-### GET /api/orders — `@jwt_required` + `@require_scope("pizza42-order")`
+### GET /api/orders — `@jwt_required` + `@is_authenticated("pizza42-order")`
 
 Returns `{"orders": [<same order shape>, …]}` for `get_jwt()["sub"]`, newest first.
 (Frontend doesn't call this yet — `Profile.jsx` currently reads the Auth0
@@ -176,7 +176,7 @@ Returns `{"orders": [<same order shape>, …]}` for `get_jwt()["sub"]`, newest f
 `flask-jwt-extended` with `JWT_ALGORITHM=RS256`, `JWT_AUDIENCE=bongawonga-enterprises`,
 `JWT_ISSUER=https://bongawonga.us.auth0.com/`. `@jwt_manager.decode_key_callback` uses
 `PyJWKClient(AUTH0_DOMAIN + "/.well-known/jwks.json")` to resolve the signing key by JWT
-header `kid` (handles key rotation). A `@require_scope` decorator checks
+header `kid` (handles key rotation). A `@is_authenticated` decorator checks
 `get_jwt()["scope"]` for `pizza42-order` (403 if missing).
 
 ## .env.example

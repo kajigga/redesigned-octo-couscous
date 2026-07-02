@@ -3,6 +3,11 @@ import { Card, Button } from "react-bootstrap";
 export default function PizzaCard({ pizza, onAdd }) {
   return (
     <Card>
+      {pizza.imageUrl && (
+        <Card.Img variant="top" src={pizza.imageUrl} 
+          style={{ height: "200px", objectFit: "cover" }}
+		  alt={pizza.name} />
+      )}
       <Card.Body>
         <Card.Title>{pizza.name}</Card.Title>
         <Card.Text>{pizza.description}</Card.Text>

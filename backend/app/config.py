@@ -12,6 +12,9 @@ class Config:
     AUTH0_ISSUER = f"https://{AUTH0_DOMAIN}/"
     AUTH0_JWKS_URL = f"https://{AUTH0_DOMAIN}/.well-known/jwks.json"
 
+    AUTH0_MGMT_CLIENT_ID = os.environ.get("AUTH0_MGMT_CLIENT_ID")
+    AUTH0_MGMT_CLIENT_SECRET = os.environ.get("AUTH0_MGMT_CLIENT_SECRET")
+
     SECRET_KEY = os.environ.get("FLASK_SECRET_KEY", "change-me")
     PORT = int(os.environ.get("PORT", "8000"))
-    DATABASE = os.environ.get("DATABASE", "orders.db")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///orders.db")

@@ -72,6 +72,8 @@ Pizza42 online ordering — a two-app project in one repo.
   `pizza42-order` enforced. Unauthorized → 401; valid token but missing scope → 403.
 - Storage: SQLite (`orders.db`), `menu`/`orders`/`order_items` tables, menu seeded on
   startup. Not production-grade; no migrations beyond bootstrap.
+- Build backend: **`uv_build`** (not hatchling, setuptools, etc.). Every Python project
+  in this repo uses `uv_build` with `[tool.uv.build-backend]` configured as needed.
 
 ## Before considering work done
 - Frontend: `npm run lint` then `npm test` (run from `frontend/`).
