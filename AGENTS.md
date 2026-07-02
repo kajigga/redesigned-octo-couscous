@@ -38,6 +38,7 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Don't commit plans, handoff docs, or scratch markdown** unless explicitly told to do so
 - **Delete outdated plans** (like `backend/PLAN.md`) once the work is complete
 - **Keep the repo clean** — only commit code, tests, and essential documentation
+- **Always use a checklist** for multi-step tasks — create todos and work through them systematically
 
 ## Git Workflow
 

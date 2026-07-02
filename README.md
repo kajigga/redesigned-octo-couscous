@@ -120,7 +120,7 @@ make run-backend      # cd backend && uv run python -m app
 
 ## Notes
 
-- **Storage**: SQLite (`instance/orders.db`), created on first run. `menu` table refilled on startup
+- **Storage**: PostgreSQL (cloud-hosted), with SQLite fallback for local development. Tables created on startup, `menu` table refilled with seed data on startup
 - **Build system**: Backend uses `uv_build` (not hatchling, setuptools, etc.).
 
 ## Contributing
