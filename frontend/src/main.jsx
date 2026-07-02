@@ -23,7 +23,7 @@ createRoot(document.getElementById("root")).render(
         }
       }}
       useRefreshTokens={true}
-      cacheLocation="memory"
+	  cacheLocation="localstorage"
     >
       {/* highlight-end auth0-provider */}
       <App />
