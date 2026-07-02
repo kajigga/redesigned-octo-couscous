@@ -16,8 +16,8 @@ run-frontend:
 run-backend:
 	cd backend; uv run python -m app
 
-bump-backend:
-	@cd backend && uv version --bump $${PART:-patch} --no-sync
-
-bump-frontend:
-	@cd frontend && npm version $${PART:-patch} --no-git-tag-version
+# bump-backend:
+# 	@cd backend && uv version --bump $${PART:-patch} --no-sync
+#
+# bump-frontend:
+# 	@cd frontend && npm version $${PART:-patch} --no-git-tag-version
