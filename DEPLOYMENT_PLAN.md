@@ -1,13 +1,13 @@
 # Deployment Plan — Pizza42 dockerized deployment + reusable add-hostname tooling
 
-Status: **executing.** Steps 1-3 done; step 4 (restart opencode) pending user.
+Status: **executing.** Steps 1-5 done; step 4 env var fix applied (zsh wrapper). Step 7 next.
 Decisions locked. Build order below.
 
 ### Progress log
 - [x] **Step 1** — `op` confirmed working; vault `Private`; item `Name.com` has fields `username` (`kajigga`) and `api_token`.
 - [x] **Step 2** — `namecom` MCP server added to `~/.config/opencode/opencode.jsonc` (creds via `{env:NAMECOM_*}`, resolved by `op read` before launch).
 - [x] **Step 3** — `add-hostname` skill created at `~/.config/opencode/skills/add-hostname/` (`SKILL.md` + `add_hostname.py`). Script uses **PEP 723 inline metadata** (no `pyproject.toml`) and shells out to `ssh loadbalancer` via `subprocess` (paramiko can't read the Keychain-unlocked encrypted key). Verified with `--dry-run` against the live loadbalancer.
-- [ ] **Step 4** — user restarts opencode (loads MCP + skill).
+- [x] **Step 4** — opencode restart env var fix applied. Root cause: `{env:VAR}` interpolation in `opencode.jsonc` resolves from opencode's process environment at launch. When opencode was started outside the `pizza42/` directory, `direnv` hadn't sourced `.oprc`, so `NAMECOM_USERNAME`/`NAMECOM_TOKEN` were unset → `NAME_USERNAME`/`NAME_TOKEN` passed empty to the MCP server. Fix: zsh function in `~/.zshrc` that sources `.oprc` before `command opencode "$@"`. Verified `namecom-mcp` works when env vars are present (listed all 17 domains via Core API v1).
 - [x] **Step 5** — Dockerfiles + `.dockerignore`s + gunicorn dep; `npm run lint && npm test && uv run pytest` all pass.
 - [x] **Step 5b** — `Makefile` with `deploy`, `deploy-backend`, `deploy-frontend` targets (rsync + scp secrets + docker compose build + up -d on arm).
 - [x] **Step 6** — `rsync` source + `scp` secrets + compose entries; `docker compose build && up -d` on arm. Frontend `localhost:8081` 200, backend `localhost:8002/api/menu` returns menu JSON.
@@ -225,7 +225,7 @@ Run twice (once per hostname). Agent does DNS via MCP, then calls `add_hostname.
 1. ~~Fix `op` perms; confirm name.com vault name (`op vault list`).~~ ✓
 2. ~~Add `namecom-mcp` to `~/.config/opencode/opencode.json`.~~ ✓
 3. ~~Create the `add-hostname` skill (`SKILL.md` + `add_hostname.py`, PEP 723 inline metadata — no `pyproject.toml`) under `~/.config/opencode/skills/add-hostname/`.~~ ✓
-4. **Restart opencode** (MCP + skill loads — required per customize-opencode rules). **← pending user**
+4. **Fix opencode env var injection** (zsh wrapper in `~/.zshrc` sources `.oprc` before launch). **← done**
 5. Pizza42 Dockerfiles + `.dockerignore`s; add `gunicorn` to backend `pyproject.toml` and `uv lock`; run `uv run pytest`, `npm run lint && npm test` locally.
 6. `rsync` source + `scp` secrets to arm; append compose; `docker compose build && up -d`.
 7. Use the new skill to provision both hostnames (**HAProxy + cert only — DNS already done**).
@@ -245,3 +245,7 @@ Run twice (once per hostname). Agent does DNS via MCP, then calls `add_hostname.
 - `backend/.env` contains a hardcoded Auth0 MGMT secret (lines 7-8) — must NOT enter the image; inject via compose env_file.
 - 1Password: item `Name.com`, fields `username` and `api_token`. Vault name **Private**.
 - opencode skill format: frontmatter `name`+`description` required; file at `~/.config/opencode/skills/add-hostname/SKILL.md`. MCP block in `opencode.json` uses `{env:VAR}` and `{file:path}` interpolation. Config changes need opencode restart.
+- `{env:VAR}` caveat: the env var must be set in opencode's process environment at launch time. If sourced via `direnv`/`.envrc`, opencode must be launched from within that directory tree. Fix: zsh function in `~/.zshrc` that sources `.oprc` before `command opencode "$@"`.
+- `namecom-mcp` (`NAME_API_URL=https://mcp.name.com`) uses name.com **Core API v1** (not legacy v4). Direct REST access at `https://api.name.com/core/v1/` with HTTP Basic Auth works fine. As of Jul 2026: 17 domains on account.
+- name.com MCP tools available: `CheckAccountBalance`, `ManageDomains`, `ManageDNS`, `ManageEmailForwardings`, `ManageURLForwardings`, `ManageVanityNameservers`, `ManageTransfers`, `ManageOrders`, `ManageDNSSECs`, `ManageWebhookNotifications`, `Hello`, `GetRequirement`, `TldPriceList`, `PremiumDomainLists`, `GetHelpResources`, `GetFeedbackLinks`, `GetTroubleshootingInfo`.
+- Case-insensitive APFS: `deployment_plan.md` and `DEPLOYMENT_PLAN.md` are the same inode (6117451) — only one file exists.
