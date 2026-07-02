@@ -5,7 +5,7 @@ from .extensions import db as _db
 from . import models
 from .db import init_db
 from .auth import jwt_manager
-from .routes.menu import menu_bp
+from .routes.public_endpoints import public_bp
 from .routes.orders import orders_bp
 
 
@@ -28,7 +28,7 @@ def create_app(test_config=None):
     with app.app_context():
         init_db()
 
-    app.register_blueprint(menu_bp, url_prefix="/api")
+    app.register_blueprint(public_bp, url_prefix="/api")
     app.register_blueprint(orders_bp, url_prefix="/api")
 
     return app

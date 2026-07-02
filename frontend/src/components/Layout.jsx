@@ -3,6 +3,7 @@ import { LinkContainer } from "react-router-bootstrap";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useCart } from "../context/CartContext";
 import AuthErrorAlert from "./AuthErrorAlert";
+import Footer from "./Footer";
 
 export default function Layout({ children }) {
   const { isAuthenticated, loginWithRedirect, logout, user } = useAuth0();
@@ -12,12 +13,14 @@ export default function Layout({ children }) {
     logout({ logoutParams: { returnTo: window.location.origin } });
 
   return (
-    <>
+    <div className="d-flex flex-column min-vh-100">
       <AuthErrorAlert />
       <Navbar bg="dark" variant="dark" expand="lg" sticky="top">
         <Container>
           <LinkContainer to="/">
-            <Navbar.Brand>Pizza42</Navbar.Brand>
+            <Navbar.Brand>
+              <img src="/images/pizza42_logo.png" alt="Pizza42" height="32" />
+            </Navbar.Brand>
           </LinkContainer>
           <Navbar.Toggle aria-controls="main-nav" />
           <Navbar.Collapse id="main-nav">
@@ -60,7 +63,8 @@ export default function Layout({ children }) {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      <Container className="py-4">{children}</Container>
-    </>
+      <Container className="py-4 flex-grow-1">{children}</Container>
+      <Footer />
+    </div>
   );
 }

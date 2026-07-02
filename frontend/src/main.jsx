@@ -22,6 +22,8 @@ createRoot(document.getElementById("root")).render(
           sessionStorage.setItem("auth0_return_to", appState.returnTo);
         }
       }}
+      useRefreshTokens={true}
+      cacheLocation="memory"
     >
       {/* highlight-end auth0-provider */}
       <App />
