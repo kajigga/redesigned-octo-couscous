@@ -39,6 +39,16 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Delete outdated plans** (like `backend/PLAN.md`) once the work is complete
 - **Keep the repo clean** — only commit code, tests, and essential documentation
 
+## Git Workflow
+
+- **Always pull from main** before starting work: `git checkout main && git pull`
+- **Work in feature branches** — never commit directly to main
+  - Features: `git checkout -b feature/name`
+  - Bug fixes: `git checkout -b fix/name`
+  - Chores: `git checkout -b chore/name`
+- **Create PRs** for review, then merge via GitHub
+- Version bumps happen automatically on merge (see Contributing section in README)
+
 ## Before done
 
 `npm run lint && npm test` (frontend/), `uv run pytest` (backend/). Confirm `npm run dev` starts.
