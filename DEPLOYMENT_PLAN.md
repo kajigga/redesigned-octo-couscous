@@ -8,6 +8,9 @@ Decisions locked. Build order below.
 - [x] **Step 2** — `namecom` MCP server added to `~/.config/opencode/opencode.jsonc` (creds via `{env:NAMECOM_*}`, resolved by `op read` before launch).
 - [x] **Step 3** — `add-hostname` skill created at `~/.config/opencode/skills/add-hostname/` (`SKILL.md` + `add_hostname.py`). Script uses **PEP 723 inline metadata** (no `pyproject.toml`) and shells out to `ssh loadbalancer` via `subprocess` (paramiko can't read the Keychain-unlocked encrypted key). Verified with `--dry-run` against the live loadbalancer.
 - [ ] **Step 4** — user restarts opencode (loads MCP + skill).
+- [x] **Step 5** — Dockerfiles + `.dockerignore`s + gunicorn dep; `npm run lint && npm test && uv run pytest` all pass.
+- [x] **Step 5b** — `Makefile` with `deploy`, `deploy-backend`, `deploy-frontend` targets (rsync + scp secrets + docker compose build + up -d on arm).
+- [x] **Step 6** — `rsync` source + `scp` secrets + compose entries; `docker compose build && up -d` on arm. Frontend `localhost:8081` 200, backend `localhost:8002/api/menu` returns menu JSON.
 - **Note:** DNS for `pizza42.bongawonga.com` and `orders.pizza42.bongawonga.com` is already configured (both resolve to the loadbalancer public IP `104.243.54.235`). Step 7 needs HAProxy + cert only — no DNS via MCP.
 
 ---
