@@ -29,4 +29,4 @@ def get_menu():
 @public_bp.route("/version")
 @cross_origin()
 def get_version():
-    return {"version": os.environ.get("GIT_SHA", "unknown")}
+    return {"version": os.environ.get("GIT_SHA") or os.environ.get("RENDER_GIT_COMMIT", "unknown")}
