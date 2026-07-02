@@ -33,6 +33,12 @@ Pizza42 — `frontend/` (React/Vite, SPA) + `backend/` (Flask API). Backend per 
 - **Semantic versioning**: Frontend and backend have independent semver versions. Backend: `uv version --bump <part>` (or `make bump-backend PART=<part>`). Frontend: `npm version <part> --no-git-tag-version` (or `make bump-frontend PART=<part>`).
 - **`quickstart/`**: Auth0 data, not app source
 
+## Repo Hygiene
+
+- **Don't commit plans, handoff docs, or scratch markdown** unless explicitly told to do so
+- **Delete outdated plans** (like `backend/PLAN.md`) once the work is complete
+- **Keep the repo clean** — only commit code, tests, and essential documentation
+
 ## Before done
 
 `npm run lint && npm test` (frontend/), `uv run pytest` (backend/). Confirm `npm run dev` starts.
