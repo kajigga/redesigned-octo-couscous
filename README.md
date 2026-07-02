@@ -122,3 +122,14 @@ make run-backend      # cd backend && uv run python -m app
 
 - **Storage**: SQLite (`instance/orders.db`), created on first run. `menu` table refilled on startup
 - **Build system**: Backend uses `uv_build` (not hatchling, setuptools, etc.).
+
+## Contributing
+
+Version bumps are automated via GitHub Actions. When you push to `main`, the workflow automatically bumps both frontend and backend versions.
+
+**Specify bump type in commit messages:**
+- `[major]` - Breaking changes (e.g., `feat: new API [major]`)
+- `[minor]` - New features (e.g., `feat: add user profiles [minor]`)
+- No tag - Bug fixes and patches (e.g., `fix: correct cart total`)
+
+Both frontend (`package.json`) and backend (`pyproject.toml`) versions are bumped together.
