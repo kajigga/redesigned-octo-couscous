@@ -51,7 +51,7 @@ pizza42/
 │   ├── pyproject.toml        # uv_build, deps
 │   └── .env.example          # Template for backend .env
 ├── auth0_actions/            # Auth0 Login Action scripts (email verification, address collection, order claims)
-├── Makefile                  # Deploy & run shortcuts
+├── Makefile                  # Run shortcuts
 └── AGENTS.md                 # Development reference for AI assistants
 ```
 
@@ -85,18 +85,10 @@ Three custom Login Actions are deployed in the Auth0 tenant, triggered on every 
 
 ## Deployment
 
-Production runs on an ARM host (`arm`) via Docker Compose. From the repo root:
+Both frontend and backend are deployed to [Render](https://render.com) and rebuild automatically on pushes to `main`.
 
-```bash
-make deploy-backend      # rsync backend/ → host, build & restart Docker container
-make deploy-frontend     # build react/Vite app → rsync dist/ + nginx.conf → host, restart container
-make deploy              # both of the above
-```
-
-- **Frontend** is served by nginx (static files from `dist/`), Docker image based on `nginx:alpine`.
-- **Backend** runs with gunicorn (4 workers), Docker image based on `python:3.11-slim`.
-- Secrets (`backend/.env`) are scp'd separately, not rsynced.
-- The `Makefile` excludes `.git`, `node_modules`, `.venv`, `dist` and other generated/private files.
+- **Frontend** — `https://pizza42.bongawonga.com`
+- **Backend** — `https://api.pizza42.bongawonga.com`
 
 
 ## Local Development
