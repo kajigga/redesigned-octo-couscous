@@ -20,7 +20,7 @@ def create_app(test_config=None):
     db_uri = app.config.get("SQLALCHEMY_DATABASE_URI", "")
     if db_uri.startswith("mysql"):
         app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "connect_args": {"ssl": {"ssl-mode": "REQUIRED"}}
+            "connect_args": {"ssl_mode": "REQUIRED"}
         }
 
     app.config["JWT_ALGORITHM"] = "RS256"
